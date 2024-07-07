@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <link rel="shortcut icon" href="%PUBLIC_URL%/favicon.ico" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta name="theme-color" content="#000000" />
+    <title>React App</title>
+</head>
+<body>
+    <noscript>You need to enable JavaScript to run this app.</noscript>
+    <div id="root"></div>
+    
+    <!-- Botones o enlaces para navegar entre vistas -->
+    <div style="margin: 3rem;">
+        <button onclick="navigateTo('/login')">Go to Login</button>
+        <button onclick="navigateTo('/register')">Go to Register</button>
+        <button onclick="navigateTo('/create-event')">Create Event</button>
+        <button onclick="navigateTo('/events')">View Events</button>
+    </div>
+
+    <script>
+        // Función para navegar entre vistas usando JavaScript
+        function navigateTo(path) {
+            window.location.href = path;
+        }
+    </script>
+</body>
+</html>
