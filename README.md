@@ -1,0 +1,1 @@
+en el front hay que instalar el "node_modules" dentro de la segunda carpera frontend que es en donde se almacena el proyecto y en el backend recomiendo hacer el "python -m venv venv-event" y luego instalar los paquetes usando como soporte el archivo "requirements"
