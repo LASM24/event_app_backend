@@ -1,22 +1,39 @@
-# backend/app/models.py
-from . import db
-from datetime import datetime
+# app/models.py
 
-class User(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    username = db.Column(db.String(150), unique=True, nullable=False)
-    email = db.Column(db.String(150), unique=True, nullable=False)
-    password = db.Column(db.String(256), nullable=False)
-    is_organizer = db.Column(db.Boolean, default=False)
+from sqlalchemy import Column, Integer, String, ForeignKey
+from sqlalchemy.orm import relationship
+from app.database import Base
 
-class Event(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    title = db.Column(db.String(200), nullable=False)
-    description = db.Column(db.Text, nullable=True)
-    date = db.Column(db.DateTime, nullable=False, default=datetime.utcnow)
-    organizer_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+class UserModel(Base):
+    __tablename__ = "users"
 
-class Registration(db.Model):
-    id = db.Column(db.Integer, primary_key=True)
-    event_id = db.Column(db.Integer, db.ForeignKey('event.id'), nullable=False)
-    user_id = db.Column(db.Integer, db.ForeignKey('user.id'), nullable=False)
+    id = Column(Integer, primary_key=True, index=True)
+    username = Column(String, unique=True, index=True)
+    email = Column(String, unique=True, index=True)
+    password = Column(String)
+
+    events = relationship("Event", back_populates="owner")
+    registrations = relationship("RegistrationModel", back_populates="user")
+
+class Event(Base):
+    __tablename__ = "events"
+
+    id = Column(Integer, primary_key=True, index=True)
+    title = Column(String, index=True)
+    description = Column(String)
+    date = Column(String)
+    location = Column(String)
+
+    owner_id = Column(Integer, ForeignKey("users.id"))
+    owner = relationship("UserModel", back_populates="events")
+    registrations = relationship("RegistrationModel", back_populates="event")
+
+class RegistrationModel(Base):
+    __tablename__ = "registrations"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"))
+    event_id = Column(Integer, ForeignKey("events.id"))
+
+    user = relationship("UserModel", back_populates="registrations")
+    event = relationship("Event", back_populates="registrations")

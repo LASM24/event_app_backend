@@ -1,76 +1,35 @@
-# backend/app/routes.py
-from flask import Blueprint, request, jsonify
-from . import db, bcrypt
-from .models import User, Event, Registration
-from .schemas import UserSchema, EventSchema, RegistrationSchema
-from flask_jwt_extended import create_access_token, jwt_required, get_jwt_identity
+# app/routes.py
 
-main = Blueprint('main', __name__)
+from fastapi import APIRouter, Depends, HTTPException, status
+from sqlalchemy.orm import Session
+from app.models import Event, UserModel, RegistrationModel
+from app.database import get_db
+from app.schemas import EventCreate, Event, RegistrationCreate, Registration
 
-user_schema = UserSchema()
-event_schema = EventSchema()
-registration_schema = RegistrationSchema()
+router = APIRouter()
 
-@main.route('/register', methods=['POST'])
-def register():
-    data = request.get_json()
-    hashed_password = bcrypt.generate_password_hash(data['password']).decode('utf-8')
-    new_user = User(username=data['username'], email=data['email'], password=hashed_password)
-    db.session.add(new_user)
-    db.session.commit()
-    return user_schema.jsonify(new_user)
+@router.post("/events-create", response_model=Event)
+def create_event(event_data: EventCreate, db: Session = Depends(get_db)):
+    new_event = Event(title=event_data.title, description=event_data.description, date=event_data.date)
+    db.add(new_event)
+    db.commit()
+    db.refresh(new_event)
+    return new_event
 
-@main.route('/login', methods=['POST'])
-def login():
-    data = request.get_json()
-    user = User.query.filter_by(email=data['email']).first()
-    if user and bcrypt.check_password_hash(user.password, data['password']):
-        access_token = create_access_token(identity=user.id)
-        return jsonify(access_token=access_token)
-    return jsonify({"msg": "Bad credentials"}), 401
+@router.get("/events", response_model=list[Event])
+def list_events(db: Session = Depends(get_db)):
+    events = db.query(Event).all()
+    return events
 
-@main.route('/events', methods=['POST'])
-@jwt_required()
-def create_event():
-    data = request.json
-    title = data.get('title')
-    description = data.get('description')
-    date = data.get('date')
-   
-    if not title or not description or not date:
-        return jsonify(message='Missing required fields'), 400
-    
-    try:
-        # Crea un nuevo evento en la base de datos
-        new_event = Event(title=title, description=description, date=date)
-        db.session.add(new_event)
-        db.session.commit()
-        return jsonify(message='Event created successfully'), 201
-    except Exception as e:
-        db.session.rollback()
-        print(str(e))
-        return jsonify(message='Failed to create event'), 500
+@router.post("/events/{event_id}/register", response_model=Registration)
+def register_for_event(event_id: int, registration_data: RegistrationCreate, db: Session = Depends(get_db)):
+    db_registration = RegistrationModel(event_id=event_id, user_id=registration_data.user_id)
+    db.add(db_registration)
+    db.commit()
+    db.refresh(db_registration)
+    return db_registration
 
-@main.route('/events', methods=['GET'])
-def list_events():
-    events = Event.query.all()
-    return event_schema.jsonify(events, many=True)
-
-@main.route('/events/<int:event_id>/register', methods=['POST'])
-@jwt_required()
-def register_for_event(event_id):
-    user_id = get_jwt_identity()
-    new_registration = Registration(event_id=event_id, user_id=user_id)
-    db.session.add(new_registration)
-    db.session.commit()
-    return registration_schema.jsonify(new_registration)
-
-@main.route('/events/<int:event_id>/registrations', methods=['GET'])
-@jwt_required()
-def list_registrations(event_id):
-    user_id = get_jwt_identity()
-    event = Event.query.get_or_404(event_id)
-    if event.organizer_id != user_id:
-        return jsonify({"msg": "Permission denied"}), 403
-    registrations = Registration.query.filter_by(event_id=event_id).all()
-    return registration_schema.jsonify(registrations, many=True)
+@router.get("/events/{event_id}/registrations", response_model=list[Registration])
+def list_registrations(event_id: int, db: Session = Depends(get_db)):
+    registrations = db.query(RegistrationModel).filter(RegistrationModel.event_id == event_id).all()
+    return registrations

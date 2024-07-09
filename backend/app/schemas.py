@@ -1,23 +1,47 @@
-# backend/app/schemas.py
-from flask_marshmallow import Marshmallow
-from .models import User, Event, Registration
+# app/schemas.py
 
-mars = Marshmallow() 
+from pydantic import BaseModel, EmailStr
+from datetime import datetime
+from typing import Optional
 
-class UserSchema(mars.SQLAlchemyAutoSchema):
-    class Meta:
-        model = User
-        load_instance = True
-        load_only = ("password",)
+class UserBase(BaseModel):
+    username: str
+    email: EmailStr
 
-class EventSchema(mars.SQLAlchemyAutoSchema):
-    class Meta:
-        model = Event
-        include_fk = True
-        load_instance = True
+class UserCreate(UserBase):
+    password: str
 
-class RegistrationSchema(mars.SQLAlchemyAutoSchema):
-    class Meta:
-        model = Registration
-        include_fk = True
-        load_instance = True
+class User(UserBase):
+    id: int
+    is_active: bool
+
+    class Config:
+        orm_mode = True
+
+class EventBase(BaseModel):
+    title: str
+    description: str
+    date: datetime
+
+class EventCreate(EventBase):
+    pass
+
+class Event(EventBase):
+    id: int
+    organizer_id: int
+
+    class Config:
+        orm_mode = True
+
+class RegistrationBase(BaseModel):
+    event_id: int
+    user_id: int
+
+class RegistrationCreate(RegistrationBase):
+    pass
+
+class Registration(RegistrationBase):
+    id: int
+
+    class Config:
+        orm_mode = True
