@@ -2,7 +2,6 @@
 
 from pydantic import BaseModel, EmailStr
 from datetime import datetime
-from typing import Optional
 
 class UserBase(BaseModel):
     username: str
@@ -13,7 +12,7 @@ class UserCreate(UserBase):
 
 class User(UserBase):
     id: int
-    is_active: bool
+    is_active: bool = True
 
     class Config:
         orm_mode = True
@@ -24,7 +23,17 @@ class EventBase(BaseModel):
     date: datetime
 
 class EventCreate(EventBase):
-    pass
+    organizer_id: int
+
+class EventOut(BaseModel):
+    id: int
+    title: str
+    description: str
+    date: datetime
+    organizer_id: int
+
+    class Config:
+        orm_mode = True
 
 class Event(EventBase):
     id: int
