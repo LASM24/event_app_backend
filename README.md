@@ -73,4 +73,10 @@ La API proporciona los siguientes endpoints:
 
 - **Ver Registrados en un Evento:** `GET /events/{event_id}/registrations`
   - Obtiene una lista de usuarios registrados para un evento específico.
-```
+ 
+## Backend creado gracias a:
+- **Cristiano Ronaldo**
+- **diosito**
+- **Yo (LASM24 alias el invicto, el inmortal, idolo, basicamente soy jesucristo pero en el desarrolo web 🤑🤑🤑🤑🤑🤑)**
+- **James Rodriguez**
+- **Daniel Muñoz (pirobo ese se hizo expuklsar, penseó que estaba en el barrio y casi mata al de uruguay de un codazo)**
