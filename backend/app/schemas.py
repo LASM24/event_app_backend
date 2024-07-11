@@ -1,5 +1,3 @@
-# app/schemas.py
-
 from pydantic import BaseModel, EmailStr
 from datetime import datetime
 
@@ -17,27 +15,31 @@ class User(UserBase):
     class Config:
         orm_mode = True
 
+class LoginUser(BaseModel):
+    username: str
+    password: str
+
 class EventBase(BaseModel):
     title: str
     description: str
     date: datetime
 
 class EventCreate(EventBase):
-    organizer_id: int
+    owner_id: int
 
 class EventOut(BaseModel):
     id: int
     title: str
     description: str
     date: datetime
-    organizer_id: int
+    owner_id: int
 
     class Config:
         orm_mode = True
 
 class Event(EventBase):
     id: int
-    organizer_id: int
+    owner_id: int
 
     class Config:
         orm_mode = True

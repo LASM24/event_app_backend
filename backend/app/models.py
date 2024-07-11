@@ -1,5 +1,3 @@
-# app/models.py
-
 from sqlalchemy import Column, Integer, String, ForeignKey
 from sqlalchemy.orm import relationship
 from app.database import Base
@@ -22,7 +20,6 @@ class Event(Base):
     title = Column(String, index=True)
     description = Column(String)
     date = Column(String)
-    location = Column(String)
 
     owner_id = Column(Integer, ForeignKey("users.id"))
     owner = relationship("UserModel", back_populates="events")
