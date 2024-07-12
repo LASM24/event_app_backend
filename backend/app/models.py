@@ -21,7 +21,7 @@ class Event(Base):
     description = Column(String)
     date = Column(String)
 
-    owner_id = Column(Integer, ForeignKey("users.id"))
+    owner_username = Column(String, ForeignKey("users.username"))
     owner = relationship("UserModel", back_populates="events")
     registrations = relationship("RegistrationModel", back_populates="event")
 

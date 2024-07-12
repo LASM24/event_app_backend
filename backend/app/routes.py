@@ -1,10 +1,8 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
-from app import models
-from app import schemas
-from app.models import UserModel, RegistrationModel
+from app.models import Event, UserModel, RegistrationModel
 from app.database import get_db
-from app.schemas import EventOut, LoginUser, RegistrationCreate, Registration, User, UserCreate
+from app.schemas import EventCreate, EventOut, LoginUser, Registration, RegistrationCreate, User, UserCreate
 from passlib.context import CryptContext
 
 router = APIRouter()
@@ -37,25 +35,47 @@ def login(user: LoginUser, db: Session = Depends(get_db)):
     return db_user
 
 # crear eventos
-@router.post("/events-create", response_model=schemas.EventOut)
-def create_event(event_data: schemas.EventCreate, db: Session = Depends(get_db)):
-    new_event = models.Event(title=event_data.title, description=event_data.description, date=event_data.date, owner_id=event_data.owner_id)
+@router.post("/events-create", response_model=EventOut)
+def create_event(event_data: EventCreate, db: Session = Depends(get_db)):
+    # Buscar al usuario por nombre de usuario
+    owner = db.query(UserModel).filter(UserModel.username == event_data.owner_username).first()
+    if not owner:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"User '{event_data.owner_username}' not found"
+        )
+    
+    # Crear el evento asociado al propietario encontrado usando owner.username
+    new_event = Event(
+        title=event_data.title,
+        description=event_data.description,
+        date=event_data.date,
+        owner_username=event_data.owner_username  # Usar el nombre de usuario del propietario
+    )
     db.add(new_event)
     db.commit()
     db.refresh(new_event)
-    return new_event
+    
+    # Devolver el evento creado como respuesta, asegurándote de incluir owner_username
+    return EventOut(
+        id=new_event.id,
+        title=new_event.title,
+        description=new_event.description,
+        date=new_event.date,
+        owner_username=new_event.owner_username  # Devolver el nombre de usuario del propietario
+    )
 
 @router.get("/events", response_model=list[EventOut])
 def list_events(db: Session = Depends(get_db)):
-    events = db.query(models.Event).all()
+    events = db.query(Event).all()
     return events
 
-@router.post("/events/{event_id}/register", response_model=schemas.Registration)
+@router.post("/events/{event_id}/register", response_model=Registration)
 def register_for_event(
-    registration_data: schemas.RegistrationCreate, 
+    registration_data: RegistrationCreate, 
     db: Session = Depends(get_db)
 ):
-    db_registration = models.RegistrationModel(
+    db_registration = RegistrationModel(
         event_id=registration_data.event_id,
         user_id=registration_data.user_id
     )
@@ -64,7 +84,7 @@ def register_for_event(
     db.refresh(db_registration)
     return db_registration
 
-@router.get("/events/{event_id}/registrations", response_model=list[schemas.Registration])
+@router.get("/events/{event_id}/registrations", response_model=list[Registration])
 def list_registrations(event_id: int, db: Session = Depends(get_db)):
     registrations = db.query(RegistrationModel).filter(RegistrationModel.event_id == event_id).all()
     return registrations

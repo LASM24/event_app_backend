@@ -25,21 +25,21 @@ class EventBase(BaseModel):
     date: datetime
 
 class EventCreate(EventBase):
-    owner_id: int
+    owner_username: str
 
 class EventOut(BaseModel):
     id: int
     title: str
     description: str
     date: datetime
-    owner_id: int
+    owner_username: str
 
     class Config:
         orm_mode = True
 
 class Event(EventBase):
     id: int
-    owner_id: int
+    owner_username: str
 
     class Config:
         orm_mode = True
