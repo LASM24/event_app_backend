@@ -2,8 +2,21 @@ import uvicorn
 from fastapi import FastAPI
 from app.routes import router as main_router
 from app.database import engine, Base
+from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI()
+
+origins = [
+    "http://localhost:5173",
+]
+
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=origins,
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 # Crear todas las tablas en la base de datos
 Base.metadata.create_all(bind=engine)

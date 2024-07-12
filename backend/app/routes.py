@@ -17,7 +17,6 @@ def verify_password(plain_password, hashed_password):
 def get_password_hash(password):
     return pwd_context.hash(password)
 
-# registrarse
 @router.post("/user-register", response_model=User)
 def register(user: UserCreate, db: Session = Depends(get_db)):
     hashed_password = get_password_hash(user.password)
@@ -27,7 +26,6 @@ def register(user: UserCreate, db: Session = Depends(get_db)):
     db.refresh(db_user)
     return db_user
 
-# iniciar sesion
 @router.post("/login", response_model=User)
 def login(user: LoginUser, db: Session = Depends(get_db)):
     db_user = db.query(UserModel).filter(UserModel.username == user.username).first()
@@ -47,13 +45,11 @@ def create_event(event_data: schemas.EventCreate, db: Session = Depends(get_db))
     db.refresh(new_event)
     return new_event
 
-# listar eventos
 @router.get("/events", response_model=list[EventOut])
 def list_events(db: Session = Depends(get_db)):
     events = db.query(models.Event).all()
     return events
 
-# para registrarse en un evento
 @router.post("/events/{event_id}/register", response_model=schemas.Registration)
 def register_for_event(
     registration_data: schemas.RegistrationCreate, 
@@ -68,9 +64,8 @@ def register_for_event(
     db.refresh(db_registration)
     return db_registration
 
-
-# Ver personas registradas en un evento
-@router.get("/events/{event_id}/registrations", response_model=list[Registration])
+@router.get("/events/{event_id}/registrations", response_model=list[schemas.Registration])
 def list_registrations(event_id: int, db: Session = Depends(get_db)):
     registrations = db.query(RegistrationModel).filter(RegistrationModel.event_id == event_id).all()
     return registrations
+
