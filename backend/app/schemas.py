@@ -1,4 +1,4 @@
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, EmailStr, HttpUrl
 from datetime import datetime
 
 class UserBase(BaseModel):
@@ -23,6 +23,8 @@ class EventBase(BaseModel):
     title: str
     description: str
     date: datetime
+    image: str
+    max_capacity: int
 
 class EventCreate(EventBase):
     owner_username: str
@@ -33,6 +35,8 @@ class EventOut(BaseModel):
     description: str
     date: datetime
     owner_username: str
+    image: str
+    max_capacity: int
 
     class Config:
         orm_mode = True

@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, ForeignKey
+from sqlalchemy import Column, Integer, LargeBinary, String, ForeignKey
 from sqlalchemy.orm import relationship
 from app.database import Base
 
@@ -20,6 +20,8 @@ class Event(Base):
     title = Column(String, index=True)
     description = Column(String)
     date = Column(String)
+    image = Column(String)
+    max_capacity = Column(Integer)
 
     owner_username = Column(String, ForeignKey("users.username"))
     owner = relationship("UserModel", back_populates="events")
@@ -34,3 +36,10 @@ class RegistrationModel(Base):
 
     user = relationship("UserModel", back_populates="registrations")
     event = relationship("Event", back_populates="registrations")
+
+class UserSession(Base):
+    __tablename__ = "user_sessions"
+
+    id = Column(Integer, primary_key=True, index=True)
+    user_id = Column(Integer, ForeignKey("users.id"))
+    token = Column(String, unique=True, index=True)

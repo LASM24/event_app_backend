@@ -1,3 +1,4 @@
+import secrets
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from app.models import Event, UserModel, RegistrationModel
@@ -50,7 +51,9 @@ def create_event(event_data: EventCreate, db: Session = Depends(get_db)):
         title=event_data.title,
         description=event_data.description,
         date=event_data.date,
-        owner_username=event_data.owner_username  # Usar el nombre de usuario del propietario
+        owner_username=event_data.owner_username,
+        image= event_data.image,
+        max_capacity= event_data.max_capacity
     )
     db.add(new_event)
     db.commit()
@@ -62,7 +65,9 @@ def create_event(event_data: EventCreate, db: Session = Depends(get_db)):
         title=new_event.title,
         description=new_event.description,
         date=new_event.date,
-        owner_username=new_event.owner_username  # Devolver el nombre de usuario del propietario
+        owner_username=new_event.owner_username,
+        image= event_data.image,
+        max_capacity= event_data.max_capacity
     )
 
 @router.get("/events", response_model=list[EventOut])
@@ -70,6 +75,8 @@ def list_events(db: Session = Depends(get_db)):
     events = db.query(Event).all()
     return events
 
+
+# Registrarse en un evento
 @router.post("/events/{event_id}/register", response_model=Registration)
 def register_for_event(
     registration_data: RegistrationCreate, 
@@ -83,6 +90,7 @@ def register_for_event(
     db.commit()
     db.refresh(db_registration)
     return db_registration
+
 
 @router.get("/events/{event_id}/registrations", response_model=list[Registration])
 def list_registrations(event_id: int, db: Session = Depends(get_db)):
