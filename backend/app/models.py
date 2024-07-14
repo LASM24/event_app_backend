@@ -23,7 +23,7 @@ class Event(Base):
     image = Column(String)
     max_capacity = Column(Integer)
 
-    owner_username = Column(String, ForeignKey("users.username"))
+    owner_id = Column(Integer, ForeignKey("users.id"))
     owner = relationship("UserModel", back_populates="events")
     registrations = relationship("RegistrationModel", back_populates="event")
 

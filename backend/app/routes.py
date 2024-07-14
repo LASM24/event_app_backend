@@ -1,13 +1,33 @@
 import secrets
 from datetime import timedelta
 from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy.orm import Session
 from app.models import Event, UserModel, RegistrationModel
 from app.database import get_db
 from app.schemas import EventCreate, EventOut, LoginUser, Registration, RegistrationCreate, User, UserCreate, Token
-from .utils import verify_password, create_access_token, get_password_hash, ACCESS_TOKEN_EXPIRE_MINUTES
+from .utils import decode_access_token, verify_password, create_access_token, get_password_hash, ACCESS_TOKEN_EXPIRE_MINUTES
 
 router = APIRouter()
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
+
+@router.get("/user-info", response_model=User)
+def get_user_info(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):
+    payload = decode_access_token(token)
+    username = payload.get("sub")
+    if username is None:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid authentication credentials",
+        )
+    user = db.query(UserModel).filter(UserModel.username == username).first()
+    if user is None:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="User not found",
+        )
+    return user
+
 
 @router.post("/user-register", response_model=User)
 def register(user: UserCreate, db: Session = Depends(get_db)):
@@ -35,17 +55,17 @@ def login(user: LoginUser, db: Session = Depends(get_db)):
 # Crear eventos
 @router.post("/events-create", response_model=EventOut)
 def create_event(event_data: EventCreate, db: Session = Depends(get_db)):
-    owner = db.query(UserModel).filter(UserModel.username == event_data.owner_username).first()
+    owner = db.query(UserModel).filter(UserModel.id == event_data.owner_id).first()
     if not owner:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"User '{event_data.owner_username}' not found"
+            detail=f"User '{event_data.owner_id}' not found"
         )
     new_event = Event(
         title=event_data.title,
         description=event_data.description,
         date=event_data.date,
-        owner_username=event_data.owner_username,
+        owner_id=event_data.owner_id,
         image=event_data.image,
         max_capacity=event_data.max_capacity
     )
@@ -57,7 +77,7 @@ def create_event(event_data: EventCreate, db: Session = Depends(get_db)):
         title=new_event.title,
         description=new_event.description,
         date=new_event.date,
-        owner_username=new_event.owner_username,
+        owner_id=new_event.owner_id,
         image=event_data.image,
         max_capacity=event_data.max_capacity
     )
