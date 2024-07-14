@@ -7,6 +7,7 @@ from app.models import Event, UserModel, RegistrationModel
 from app.database import get_db
 from app.schemas import EventCreate, EventOut, LoginUser, Registration, RegistrationCreate, User, UserCreate, Token
 from .utils import decode_access_token, verify_password, create_access_token, get_password_hash, ACCESS_TOKEN_EXPIRE_MINUTES
+from typing import List
 
 router = APIRouter()
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
@@ -72,20 +73,46 @@ def create_event(event_data: EventCreate, db: Session = Depends(get_db)):
     db.add(new_event)
     db.commit()
     db.refresh(new_event)
+    
+    # Obtener el nombre de usuario del propietario
+    owner_username = get_owner_username(db, new_event.owner_id)
+    
     return EventOut(
         id=new_event.id,
         title=new_event.title,
         description=new_event.description,
         date=new_event.date,
+        owner_username=owner_username,
         owner_id=new_event.owner_id,
-        image=event_data.image,
-        max_capacity=event_data.max_capacity
+        image=new_event.image,
+        max_capacity=new_event.max_capacity
     )
 
-@router.get("/events", response_model=list[EventOut])
+def get_owner_username(db: Session, owner_id: int) -> str:
+    owner = db.query(UserModel).filter(UserModel.id == owner_id).first()
+    if owner:
+        return owner.username
+    return ""
+
+@router.get("/events/", response_model=List[EventOut])
 def list_events(db: Session = Depends(get_db)):
     events = db.query(Event).all()
-    return events
+    event_out_list = []
+    for event in events:
+        owner_username = get_owner_username(db, event.owner_id)
+        event_out = EventOut(
+            id=event.id,
+            title=event.title,
+            description=event.description,
+            date=event.date,
+            owner_username=owner_username,
+            owner_id=event.owner_id,
+            image=event.image,
+            max_capacity=event.max_capacity
+        )
+        event_out_list.append(event_out)
+    
+    return event_out_list
 
 @router.post("/events/{event_id}/register", response_model=Registration)
 def register_for_event(

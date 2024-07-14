@@ -38,8 +38,9 @@ class EventOut(BaseModel):
     title: str
     description: str
     date: datetime
-    owner_id: int
     image: str
+    owner_username: str
+    owner_id:int  # Puedes marcar estos como opcionales
     max_capacity: int
 
     class Config:
