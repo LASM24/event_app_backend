@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, LargeBinary, String, ForeignKey
+from sqlalchemy import Column, Integer, LargeBinary, String, ForeignKey, DateTime
 from sqlalchemy.orm import relationship
 from app.database import Base
 
@@ -19,7 +19,7 @@ class Event(Base):
     id = Column(Integer, primary_key=True, index=True)
     title = Column(String, index=True)
     description = Column(String)
-    date = Column(String)
+    date = Column(DateTime)
     image = Column(String)
     max_capacity = Column(Integer)
 

@@ -8,6 +8,9 @@ from app.database import get_db
 from app.schemas import EventCreate, EventOut, LoginUser, Registration, RegistrationCreate, User, UserCreate, Token
 from .utils import decode_access_token, verify_password, create_access_token, get_password_hash, ACCESS_TOKEN_EXPIRE_MINUTES
 from typing import List
+from .database import SessionLocal
+from . import schemas, crud, models
+
 
 router = APIRouter()
 oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
@@ -114,21 +117,32 @@ def list_events(db: Session = Depends(get_db)):
     
     return event_out_list
 
-@router.post("/events/{event_id}/register", response_model=Registration)
+@router.post("/events/{event_id}/register", response_model=schemas.Registration)
 def register_for_event(
-    registration_data: RegistrationCreate, 
+    event_id: int,
+    registration_data: schemas.RegistrationCreate,
     db: Session = Depends(get_db)
 ):
-    db_registration = RegistrationModel(
-        event_id=registration_data.event_id,
-        user_id=registration_data.user_id
+    # Verificar si ya existe una inscripción para este usuario y evento
+    existing_registration = crud.get_registration_by_user_event(
+        db, user_id=registration_data.user_id, event_id=event_id
     )
-    db.add(db_registration)
-    db.commit()
-    db.refresh(db_registration)
+    if existing_registration:
+        raise HTTPException(status_code=400, detail="User is already registered for this event")
+
+    # Verificar la capacidad del evento
+    event = crud.get_event(db, event_id=event_id)
+    registrations_count = crud.get_registrations_count_by_event(db, event_id=event_id)
+    if registrations_count >= event.max_capacity:
+        raise HTTPException(status_code=400, detail="Event capacity reached")
+
+    # Si no existe, proceder con la creación de la inscripción
+    db_registration = crud.create_registration(db, event_id=event_id, user_id=registration_data.user_id)
     return db_registration
 
-@router.get("/events/{event_id}/registrations", response_model=list[Registration])
+@router.get("/events/{event_id}/registrations", response_model=list[schemas.RegistrationWithUser])
 def list_registrations(event_id: int, db: Session = Depends(get_db)):
-    registrations = db.query(RegistrationModel).filter(RegistrationModel.event_id == event_id).all()
+    registrations = crud.get_registrations_by_event(db, event_id=event_id)
+    for registration in registrations:
+        registration.user = db.query(models.UserModel).filter(models.UserModel.id == registration.user_id).first()
     return registrations

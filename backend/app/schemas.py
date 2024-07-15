@@ -40,7 +40,7 @@ class EventOut(BaseModel):
     date: datetime
     image: str
     owner_username: str
-    owner_id:int  # Puedes marcar estos como opcionales
+    owner_id: int  # Puedes marcar estos como opcionales
     max_capacity: int
 
     class Config:
@@ -65,3 +65,6 @@ class Registration(RegistrationBase):
 
     class Config:
         orm_mode = True
+
+class RegistrationWithUser(Registration):
+    user: User
