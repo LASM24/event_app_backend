@@ -2,7 +2,13 @@ from passlib.context import CryptContext
 from datetime import datetime, timedelta
 import jwt
 from typing import Optional
-from fastapi import HTTPException, status
+from fastapi import HTTPException, status, Depends
+from app.database import get_db
+from app.models import UserModel
+from fastapi.security import OAuth2PasswordBearer
+from sqlalchemy.orm import Session
+
+oauth2_scheme = OAuth2PasswordBearer(tokenUrl="login")
 
 SECRET_KEY = "your_secret_key"
 ALGORITHM = "HS256"

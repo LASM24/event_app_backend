@@ -5,7 +5,7 @@ from fastapi.security import OAuth2PasswordBearer
 from sqlalchemy.orm import Session
 from app.models import Event, UserModel, RegistrationModel
 from app.database import get_db
-from app.schemas import EventCreate, EventOut, LoginUser, Registration, RegistrationCreate, User, UserCreate, Token
+from app.schemas import EventCreate, EventOut, LoginUser, Registration, RegistrationCreate, User, UserCreate, Token, UserUpdate
 from .utils import decode_access_token, verify_password, create_access_token, get_password_hash, ACCESS_TOKEN_EXPIRE_MINUTES
 from typing import List
 from .database import SessionLocal
@@ -32,6 +32,32 @@ def get_user_info(token: str = Depends(oauth2_scheme), db: Session = Depends(get
         )
     return user
 
+@router.put("/updateUser", response_model=User)
+def update_user(user_update: UserUpdate, token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):
+    payload = decode_access_token(token)
+    username = payload.get("sub")
+    if username is None:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid authentication credentials",
+        )
+    user = db.query(UserModel).filter(UserModel.username == username).first()
+    if user is None:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="User not found",
+        )
+
+    if user_update.username:
+        user.username = user_update.username
+    if user_update.email:
+        user.email = user_update.email
+    if user_update.password:
+        user.password = get_password_hash(user_update.password)
+
+    db.commit()
+    db.refresh(user)
+    return user
 
 @router.post("/user-register", response_model=User)
 def register(user: UserCreate, db: Session = Depends(get_db)):
