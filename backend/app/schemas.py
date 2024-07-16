@@ -15,6 +15,7 @@ class UserCreate(BaseModel):
 class User(UserBase):
     id: int
     is_active: bool = True
+    role: bool  # Incluye el campo role como booleano
 
     class Config:
         orm_mode = True
@@ -49,7 +50,7 @@ class EventOut(BaseModel):
     date: datetime
     image: str
     owner_username: Optional[str]
-    owner_id: int  # Puedes marcar estos como opcionales
+    owner_id: int
     max_capacity: int
     event_type: str
 
