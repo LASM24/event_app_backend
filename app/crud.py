@@ -1,5 +1,5 @@
 from sqlalchemy.orm import Session
-from . import models, schemas
+from . import models
 
 def get_registration_by_user_event(db: Session, user_id: int, event_id: int):
     return db.query(models.RegistrationModel).filter(

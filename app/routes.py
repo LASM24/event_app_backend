@@ -4,12 +4,11 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
 from pydantic import ValidationError
 from sqlalchemy.orm import Session
-from app.models import Event, UserModel, RegistrationModel
-from app.database import get_db
-from app.schemas import EventCreate, EventOut, LoginUser, Registration, RegistrationCreate, User, UserCreate, Token, UserUpdate
+from .models import Event, UserModel, RegistrationModel
+from .database import get_db
+from .schemas import EventCreate, EventOut, LoginUser, Registration, RegistrationCreate, User, UserCreate, Token, UserUpdate
 from .utils import decode_access_token, verify_password, create_access_token, get_password_hash, ACCESS_TOKEN_EXPIRE_MINUTES
 from typing import List
-from .database import SessionLocal
 from . import schemas, crud, models
 
 
