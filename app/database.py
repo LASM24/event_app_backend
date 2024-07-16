@@ -2,7 +2,7 @@ from sqlalchemy import create_engine
 from sqlalchemy.ext.declarative import declarative_base
 from sqlalchemy.orm import sessionmaker
 
-SQLALCHEMY_DATABASE_URL = "postgresql://db_admin:35ue2iM6UHTdfp97jv8pihWoKBLeTtsK@dpg-cq4vhqdds78s73cq96ig-a.oregon-postgres.render.com/events_web_app"
+SQLALCHEMY_DATABASE_URL = "postgresql://db_admin:8h6erWP1h59T5pwtWnZhn4sekU9i56ID@dpg-cqbf153v2p9s73eqfeb0-a/db_events_app"
 
 if "sqlite" in SQLALCHEMY_DATABASE_URL:
     engine = create_engine(SQLALCHEMY_DATABASE_URL, connect_args={"check_same_thread": False})
