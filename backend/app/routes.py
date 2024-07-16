@@ -2,6 +2,7 @@ import secrets
 from datetime import timedelta
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer
+from pydantic import ValidationError
 from sqlalchemy.orm import Session
 from app.models import Event, UserModel, RegistrationModel
 from app.database import get_db
@@ -62,7 +63,7 @@ def update_user(user_update: UserUpdate, token: str = Depends(oauth2_scheme), db
 @router.post("/user-register", response_model=User)
 def register(user: UserCreate, db: Session = Depends(get_db)):
     hashed_password = get_password_hash(user.password)
-    db_user = UserModel(username=user.username, email=user.email, password=hashed_password)
+    db_user = UserModel(username=user.username, email=user.email, password=hashed_password, role=user.role)
     db.add(db_user)
     db.commit()
     db.refresh(db_user)
@@ -85,37 +86,39 @@ def login(user: LoginUser, db: Session = Depends(get_db)):
 # Crear eventos
 @router.post("/events-create", response_model=EventOut)
 def create_event(event_data: EventCreate, db: Session = Depends(get_db)):
-    owner = db.query(UserModel).filter(UserModel.id == event_data.owner_id).first()
-    if not owner:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=f"User '{event_data.owner_id}' not found"
+    try:
+        owner = db.query(UserModel).filter(UserModel.id == event_data.owner_id).first()
+        if not owner:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"User '{event_data.owner_id}' not found"
+            )
+        
+        if event_data.event_type not in ['presencial', 'virtual']:
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                detail="Event type must be either 'presencial' or 'virtual'"
+            )
+
+        image_url = 'https://www.moblee.com.br/blog/wp-content/uploads/sites/2/2018/01/Nada-pode-vencer-a-experie%CC%82ncia-de-um-evento-presencial-1-1.png' if event_data.event_type == 'presencial' else 'https://st4.depositphotos.com/5758082/39135/v/450/depositphotos_391352110-stock-illustration-conference-video-call-remote-work.jpg'
+
+        new_event = Event(
+            title=event_data.title,
+            description=event_data.description,
+            date=event_data.date,
+            owner_id=event_data.owner_id,
+            image=image_url,
+            max_capacity=event_data.max_capacity,
+            event_type=event_data.event_type
         )
-    new_event = Event(
-        title=event_data.title,
-        description=event_data.description,
-        date=event_data.date,
-        owner_id=event_data.owner_id,
-        image=event_data.image,
-        max_capacity=event_data.max_capacity
-    )
-    db.add(new_event)
-    db.commit()
-    db.refresh(new_event)
-    
-    # Obtener el nombre de usuario del propietario
-    owner_username = get_owner_username(db, new_event.owner_id)
-    
-    return EventOut(
-        id=new_event.id,
-        title=new_event.title,
-        description=new_event.description,
-        date=new_event.date,
-        owner_username=owner_username,
-        owner_id=new_event.owner_id,
-        image=new_event.image,
-        max_capacity=new_event.max_capacity
-    )
+        db.add(new_event)
+        db.commit()
+        db.refresh(new_event)
+        return new_event
+    except ValidationError as e:
+        print(e.json())
+        raise e
+
 
 def get_owner_username(db: Session, owner_id: int) -> str:
     owner = db.query(UserModel).filter(UserModel.id == owner_id).first()
@@ -137,7 +140,8 @@ def list_events(db: Session = Depends(get_db)):
             owner_username=owner_username,
             owner_id=event.owner_id,
             image=event.image,
-            max_capacity=event.max_capacity
+            max_capacity=event.max_capacity,
+            event_type=event.event_type
         )
         event_out_list.append(event_out)
     

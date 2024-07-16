@@ -6,8 +6,11 @@ class UserBase(BaseModel):
     username: str
     email: EmailStr
 
-class UserCreate(UserBase):
+class UserCreate(BaseModel):
+    username: str
+    email: str
     password: str
+    role: bool = False
 
 class User(UserBase):
     id: int
@@ -33,11 +36,11 @@ class EventBase(BaseModel):
     title: str
     description: str
     date: datetime
-    image: str
     max_capacity: int
 
 class EventCreate(EventBase):
     owner_id: int
+    event_type: str
 
 class EventOut(BaseModel):
     id: int
@@ -45,9 +48,10 @@ class EventOut(BaseModel):
     description: str
     date: datetime
     image: str
-    owner_username: str
+    owner_username: Optional[str]
     owner_id: int  # Puedes marcar estos como opcionales
     max_capacity: int
+    event_type: str
 
     class Config:
         orm_mode = True
