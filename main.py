@@ -6,6 +6,8 @@ from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI()
 
+# Prueba
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["https://web-fron-end-my-event-management-platform.vercel.app"],
