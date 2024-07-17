@@ -1,3 +1,4 @@
+import os
 import secrets
 from datetime import timedelta
 from fastapi import APIRouter, Depends, HTTPException, status
@@ -103,7 +104,7 @@ def create_event(event_data: EventCreate, db: Session = Depends(get_db)):
                 detail="Event type must be either 'presencial' or 'virtual'"
             )
 
-        image_url = 'IMG_PRESENCIAL' if event_data.event_type == 'presencial' else 'IMG_VIRTUAL'
+        image_url = os.getenv('IMG_PRESENCIAL') if event_data.event_type == 'presencial' else os.getenv('IMG_VIRTUAL')
 
         new_event = Event(
             title=event_data.title,

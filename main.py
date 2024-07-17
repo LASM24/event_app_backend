@@ -1,3 +1,4 @@
+import os
 import uvicorn
 from fastapi import FastAPI
 from app.routes import router as main_router
@@ -5,6 +6,7 @@ from app.database import engine, Base
 from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI()
+FRONT_URL = os.getenv("FRONT_URL")
 
 app.add_middleware(
     CORSMiddleware,
