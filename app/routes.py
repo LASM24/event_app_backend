@@ -20,6 +20,10 @@ oauth2_scheme = OAuth2PasswordBearer(tokenUrl="token")
 def read_root():
     return "Home API :D"
 
+@router.get("/health")
+def health_check():
+    return {"status": "ok"}
+
 @router.get("/user-info", response_model=User)
 def get_user_info(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):
     payload = decode_access_token(token)
