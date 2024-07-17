@@ -1,4 +1,3 @@
-import os
 import uvicorn
 from fastapi import FastAPI
 from app.routes import router as main_router
@@ -6,11 +5,10 @@ from app.database import engine, Base
 from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI()
-FRONT_URL = os.getenv("FRONT_URL")
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["FRONT_URL"],
+    allow_origins=["https://web-fron-end-my-event-management-platform.vercel.app"],
     allow_credentials=True,
     allow_methods=["GET", "POST", "PUT"],
     allow_headers=["*"],
