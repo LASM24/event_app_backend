@@ -103,7 +103,7 @@ def create_event(event_data: EventCreate, db: Session = Depends(get_db)):
                 detail="Event type must be either 'presencial' or 'virtual'"
             )
 
-        image_url = 'https://www.moblee.com.br/blog/wp-content/uploads/sites/2/2018/01/Nada-pode-vencer-a-experie%CC%82ncia-de-um-evento-presencial-1-1.png' if event_data.event_type == 'presencial' else 'https://st4.depositphotos.com/5758082/39135/v/450/depositphotos_391352110-stock-illustration-conference-video-call-remote-work.jpg'
+        image_url = 'IMG_PRESENCIAL' if event_data.event_type == 'presencial' else 'IMG_VIRTUAL'
 
         new_event = Event(
             title=event_data.title,
@@ -156,20 +156,17 @@ def register_for_event(
     registration_data: schemas.RegistrationCreate,
     db: Session = Depends(get_db)
 ):
-    # Verificar si ya existe una inscripción para este usuario y evento
     existing_registration = crud.get_registration_by_user_event(
         db, user_id=registration_data.user_id, event_id=event_id
     )
     if existing_registration:
         raise HTTPException(status_code=400, detail="User is already registered for this event")
 
-    # Verificar la capacidad del evento
     event = crud.get_event(db, event_id=event_id)
     registrations_count = crud.get_registrations_count_by_event(db, event_id=event_id)
     if registrations_count >= event.max_capacity:
         raise HTTPException(status_code=400, detail="Event capacity reached")
 
-    # Si no existe, proceder con la creación de la inscripción
     db_registration = crud.create_registration(db, event_id=event_id, user_id=registration_data.user_id)
     return db_registration
 

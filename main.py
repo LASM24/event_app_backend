@@ -8,18 +8,15 @@ app = FastAPI()
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["https://web-fron-end-my-event-management-platform.vercel.app"],
+    allow_origins=["FRONT_URL"],
     allow_credentials=True,
-    allow_methods=["GET", "POST", "PUT"],  
-    allow_headers=["*"],  
+    allow_methods=["GET", "POST", "PUT"],
+    allow_headers=["*"],
 )
 
-# Crear todas las tablas en la base de datos
 Base.metadata.create_all(bind=engine)
 
-# Incluir las rutas definidas en routes.py
 app.include_router(main_router)
 
-# Ejecutar el servidor de Uvicorn
 if __name__ == "__main__":
     uvicorn.run(app, host="127.0.0.1", port=8000)
