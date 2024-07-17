@@ -7,7 +7,7 @@ from pydantic import ValidationError
 from sqlalchemy.orm import Session
 from .models import Event, UserModel, RegistrationModel
 from .database import get_db
-from .schemas import EventCreate, EventOut, LoginUser, Registration, RegistrationCreate, User, UserCreate, Token, UserUpdate
+from .schemas import EventCreate, EventOut, EventUpdate, LoginUser, Registration, RegistrationCreate, User, UserCreate, Token, UserUpdate
 from .utils import decode_access_token, verify_password, create_access_token, get_password_hash, ACCESS_TOKEN_EXPIRE_MINUTES
 from typing import List
 from . import schemas, crud, models
@@ -123,6 +123,64 @@ def create_event(event_data: EventCreate, db: Session = Depends(get_db)):
         print(e.json())
         raise e
 
+@router.get("/events/{event_id}", response_model=EventOut)
+def get_event(event_id: int, db: Session = Depends(get_db)):
+    event = db.query(Event).filter(Event.id == event_id).first()
+    if not event:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Event with id {event_id} not found"
+        )
+    return event
+
+@router.put("/events-update/{event_id}", response_model=EventOut)
+def update_event(event_id: int, event_update: EventUpdate, token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):
+    payload = decode_access_token(token)
+    username = payload.get("sub")
+    if username is None:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid authentication credentials",
+        )
+    user = db.query(UserModel).filter(UserModel.username == username).first()
+    if user is None:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="User not found",
+        )
+
+    event = db.query(Event).filter(Event.id == event_id).first()
+    if event is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Event not found",
+        )
+    if event.owner_id != user.id:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Not authorized to update this event",
+        )
+
+    if event_update.event_type not in ['presencial', 'virtual']:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail="Event type must be either 'presencial' or 'virtual'"
+        )
+
+    if event_update.event_type == 'virtual':
+        event.image = 'https://st4.depositphotos.com/5758082/39135/v/450/depositphotos_391352110-stock-illustration-conference-video-call-remote-work.jpg'
+    elif event_update.event_type == 'presencial':
+        event.image = 'https://www.moblee.com.br/blog/wp-content/uploads/sites/2/2018/01/Nada-pode-vencer-a-experie%CC%82ncia-de-um-evento-presencial-1-1.png'
+
+    event.title = event_update.title
+    event.description = event_update.description
+    event.date = event_update.date
+    event.max_capacity = event_update.max_capacity
+    event.event_type = event_update.event_type
+
+    db.commit()
+    db.refresh(event)
+    return event
 
 def get_owner_username(db: Session, owner_id: int) -> str:
     owner = db.query(UserModel).filter(UserModel.id == owner_id).first()

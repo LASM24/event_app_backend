@@ -57,6 +57,13 @@ class EventOut(BaseModel):
     class Config:
         orm_mode = True
 
+class EventUpdate(BaseModel):
+    title: str
+    description: str
+    date: datetime
+    max_capacity: int
+    event_type: str
+
 class Event(EventBase):
     id: int
     owner_id: int
