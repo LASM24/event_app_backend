@@ -104,7 +104,7 @@ def create_event(event_data: EventCreate, db: Session = Depends(get_db)):
                 detail="Event type must be either 'presencial' or 'virtual'"
             )
 
-        image_url = 'https://www.moblee.com.br/blog/wp-content/uploads/sites/2/2018/01/Nada-pode-vencer-a-experie%CC%82ncia-de-um-evento-presencial-1-1.png' if event_data.event_type == 'presencial' else 'https://st4.depositphotos.com/5758082/39135/v/450/depositphotos_391352110-stock-illustration-conference-video-call-remote-work.jpg'
+        image_url = os.getenv('IMG_PRESENCIAL') if event_data.event_type == 'presencial' else os.getenv('IMG_VIRTUAL')
 
         new_event = Event(
             title=event_data.title,

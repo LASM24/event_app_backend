@@ -8,7 +8,7 @@ app = FastAPI()
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:5173"],
+    allow_origins=["https://web-fron-end-my-event-management-platform.vercel.app"],
     allow_credentials=True,
     allow_methods=["GET", "POST", "PUT"],
     allow_headers=["*"],
