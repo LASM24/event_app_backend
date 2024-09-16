@@ -1,6 +1,6 @@
 # Event App Backend
 
-Este repositorio contiene el backend de una web para gestionar eventos y usuarios. Desarrollada con FastAPI, SQLAlchemy, pydantic y JWT.
+Este repositorio contiene el backend de una web para gestionar eventos y usuarios. Desarrollada con FastAPI, SQLAlchemy, pydantic y JWT. Puedes visitar el repositorio del frontend [aqui](https://github.com/SonicWD/Web-FronEnd-My-event-management-platform).
 
 ## Clonar Repositorio
 
