@@ -1,6 +1,6 @@
 # Event App Backend
 
-Este repositorio contiene el backend de una API para gestionar eventos y usuarios, desarrollada con FastAPI y SQLAlchemy.
+Este repositorio contiene el backend de una web para gestionar eventos y usuarios. Desarrollada con FastAPI, SQLAlchemy, pydantic y JWT.
 
 ## Clonar Repositorio
 
@@ -50,7 +50,11 @@ Para ejecutar el servidor de desarrollo de FastAPI, asegúrate de que tu entorno
 uvicorn app.main:app --reload
 ```
 
-Esto iniciará el servidor en `http://localhost:8000`. Puedes acceder a la documentación de la API en `http://localhost:8000/docs`.
+Esto iniciará el servidor en `http://localhost:8000`. Puedes acceder a la documentación de la API en `http://localhost:8000/docs`. Tener en cuenta que la rama main esta configurada para el entorno de produccion, así que se debe inicar en la rama main usando el comando:
+
+```
+git checkout develop
+```
 
 ## Descripción de la API
 
